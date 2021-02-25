@@ -1,0 +1,274 @@
+# This is a sample build configuration for Java (Gradle).
+# Check our guides at https://confluence.atlassian.com/x/zd-5Mw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: openjdk:8
+
+pipelines:
+  tags:
+    hotfix-*:
+      - parallel:
+          - step:
+              size: 2x
+              caches:
+                - gradle
+                - android-sdk
+
+              name: hotfix build Server Test
+              script:
+                # Download and unzip android sdk
+                - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+                - unzip -o -qq android-sdk.zip -d android-sdk
+
+                # Define Android Home and add PATHs
+                - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+                - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+                # Download packages.
+                - yes | sdkmanager "platform-tools"
+                - yes | sdkmanager "platforms;android-27"
+                - yes | sdkmanager "build-tools;27.0.3"
+                - yes | sdkmanager "extras;android;m2repository"
+                - yes | sdkmanager "extras;google;m2repository"
+                - yes | sdkmanager "extras;google;instantapps"
+                - yes | sdkmanager --licenses
+
+                - chmod a+x ./gradlew
+                - ./gradlew :app:assembleServerTestRelease
+
+              artifacts:
+                - app/build/outputs/apk/serverTest/release/*.apk
+
+          - step:
+              size: 2x
+              caches:
+                - gradle
+                - android-sdk
+
+              name: hotfix build Stage
+              script:
+                # Download and unzip android sdk
+                - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+                - unzip -o -qq android-sdk.zip -d android-sdk
+
+                # Define Android Home and add PATHs
+                - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+                - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+                # Download packages.
+                - yes | sdkmanager "platform-tools"
+                - yes | sdkmanager "platforms;android-27"
+                - yes | sdkmanager "build-tools;27.0.3"
+                - yes | sdkmanager "extras;android;m2repository"
+                - yes | sdkmanager "extras;google;m2repository"
+                - yes | sdkmanager "extras;google;instantapps"
+                - yes | sdkmanager --licenses
+
+                - chmod a+x ./gradlew
+                - ./gradlew :app:assembleStageRelease
+
+              artifacts:
+                - app/build/outputs/apk/stage/release/*.apk
+
+          - step:
+              size: 2x
+              caches:
+                - gradle
+                - android-sdk
+
+              name: hotfix build Prod
+              script:
+                # Download and unzip android sdk
+                - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+                - unzip -o -qq android-sdk.zip -d android-sdk
+
+                # Define Android Home and add PATHs
+                - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+                - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+                # Download packages.
+                - yes | sdkmanager "platform-tools"
+                - yes | sdkmanager "platforms;android-27"
+                - yes | sdkmanager "build-tools;27.0.3"
+                - yes | sdkmanager "extras;android;m2repository"
+                - yes | sdkmanager "extras;google;m2repository"
+                - yes | sdkmanager "extras;google;instantapps"
+                - yes | sdkmanager --licenses
+
+                - chmod a+x ./gradlew
+                - ./gradlew :app:assembleProd
+
+              artifacts:
+                - app/build/outputs/apk/prod/debug/*.apk
+                - app/build/outputs/apk/prod/release/*.apk
+
+  #default:
+  branches:
+    develop:
+      #  - step:
+      #      name: submodule init
+      #      script:
+      #      - git submodule update --init --force --remote
+      - step:
+          size: 2x
+          caches:
+            - gradle
+            - android-sdk
+
+          script:
+            # Download and unzip android sdk
+            - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+            - unzip -o -qq android-sdk.zip -d android-sdk
+
+            # Define Android Home and add PATHs
+            - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+            - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+            # Download packages.
+            - yes | sdkmanager "platform-tools"
+            - yes | sdkmanager "platforms;android-27"
+            - yes | sdkmanager "build-tools;27.0.3"
+            - yes | sdkmanager "extras;android;m2repository"
+            - yes | sdkmanager "extras;google;m2repository"
+            - yes | sdkmanager "extras;google;instantapps"
+            - yes | sdkmanager --licenses
+
+            # Modify the commands below to build your repository.
+            # You must commit the Gradle wrapper to your repository
+            # https://docs.gradle.org/current/userguide/gradle_wrapper.html
+            - chmod a+x ./gradlew
+            - ./gradlew test
+
+
+    hotfix/*:
+      - step:
+          size: 2x
+          caches:
+            - gradle
+            - android-sdk
+
+          script:
+            # Download and unzip android sdk
+            - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+            - unzip -o -qq android-sdk.zip -d android-sdk
+
+            # Define Android Home and add PATHs
+            - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+            - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+            # Download packages.
+            - yes | sdkmanager "platform-tools"
+            - yes | sdkmanager "platforms;android-27"
+            - yes | sdkmanager "build-tools;27.0.3"
+            - yes | sdkmanager "extras;android;m2repository"
+            - yes | sdkmanager "extras;google;m2repository"
+            - yes | sdkmanager "extras;google;instantapps"
+            - yes | sdkmanager --licenses
+
+            # Modify the commands below to build your repository.
+            # You must commit the Gradle wrapper to your repository
+            # https://docs.gradle.org/current/userguide/gradle_wrapper.html
+            - chmod a+x ./gradlew
+            - ./gradlew test
+
+    master:
+      - parallel:
+          - step:
+              size: 2x
+              caches:
+                - gradle
+                - android-sdk
+
+              name: build Server Test
+              script:
+                # Download and unzip android sdk
+                - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+                - unzip -o -qq android-sdk.zip -d android-sdk
+
+                # Define Android Home and add PATHs
+                - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+                - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+                # Download packages.
+                - yes | sdkmanager "platform-tools"
+                - yes | sdkmanager "platforms;android-27"
+                - yes | sdkmanager "build-tools;27.0.3"
+                - yes | sdkmanager "extras;android;m2repository"
+                - yes | sdkmanager "extras;google;m2repository"
+                - yes | sdkmanager "extras;google;instantapps"
+                - yes | sdkmanager --licenses
+
+                - chmod a+x ./gradlew
+                - ./gradlew :app:assembleServerTestRelease
+
+              artifacts:
+                - app/build/outputs/apk/serverTest/release/*.apk
+
+          - step:
+              size: 2x
+              caches:
+                - gradle
+                - android-sdk
+
+              name: build Stage
+              script:
+                # Download and unzip android sdk
+                - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+                - unzip -o -qq android-sdk.zip -d android-sdk
+
+                # Define Android Home and add PATHs
+                - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+                - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+                # Download packages.
+                - yes | sdkmanager "platform-tools"
+                - yes | sdkmanager "platforms;android-27"
+                - yes | sdkmanager "build-tools;27.0.3"
+                - yes | sdkmanager "extras;android;m2repository"
+                - yes | sdkmanager "extras;google;m2repository"
+                - yes | sdkmanager "extras;google;instantapps"
+                - yes | sdkmanager --licenses
+
+                - chmod a+x ./gradlew
+                - ./gradlew :app:assembleStageRelease
+
+              artifacts:
+                - app/build/outputs/apk/stage/release/*.apk
+
+          - step:
+              size: 2x
+              caches:
+                - gradle
+                - android-sdk
+
+              name: build Prod
+              script:
+                # Download and unzip android sdk
+                - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+                - unzip -o -qq android-sdk.zip -d android-sdk
+
+                # Define Android Home and add PATHs
+                - export ANDROID_HOME="/opt/atlassian/pipelines/agent/build/android-sdk"
+                - export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+                # Download packages.
+                - yes | sdkmanager "platform-tools"
+                - yes | sdkmanager "platforms;android-27"
+                - yes | sdkmanager "build-tools;27.0.3"
+                - yes | sdkmanager "extras;android;m2repository"
+                - yes | sdkmanager "extras;google;m2repository"
+                - yes | sdkmanager "extras;google;instantapps"
+                - yes | sdkmanager --licenses
+
+                - chmod a+x ./gradlew
+                - ./gradlew :app:assembleProd
+
+              artifacts:
+                - app/build/outputs/apk/prod/debug/*.apk
+                - app/build/outputs/apk/prod/release/*.apk
+
+definitions:
+  caches:
+    android-sdk: android-sdk
+
